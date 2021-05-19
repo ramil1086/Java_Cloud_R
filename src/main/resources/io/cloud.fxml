@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="205.0" prefWidth="362.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.CloudController">
+   <children>
+      <Button fx:id="buttonUploadFiles" layoutX="29.0" layoutY="168.0" mnemonicParsing="false" onAction="#uploadFiles" prefHeight="25.0" prefWidth="97.0" text="Upload Files" />
+      <Button fx:id="buttonSendFiles" onAction="#sendFiles" layoutX="126.0" layoutY="168.0" mnemonicParsing="false" text="Send" />
+      <TextArea fx:id="textArea" layoutX="29.0" layoutY="16.0" prefHeight="146.0" prefWidth="297.0" />
+      
+   </children>
+</AnchorPane>
