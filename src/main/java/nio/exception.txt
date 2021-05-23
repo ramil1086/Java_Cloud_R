@@ -1,0 +1,13 @@
+Exception in thread "main" java.io.FileNotFoundException: e:\test\as.txt
+ (Синтаксическая ошибка в имени файла, имени папки или метке тома)
+	at java.io.FileInputStream.open0(Native Method)
+	at java.io.FileInputStream.open(FileInputStream.java:195)
+	at java.io.FileInputStream.<init>(FileInputStream.java:138)
+	at java.io.FileInputStream.<init>(FileInputStream.java:93)
+	at java.io.FileReader.<init>(FileReader.java:58)
+	at nio.Server.catCommand(Server.java:157)
+	at nio.Server.handleRead(Server.java:77)
+	at nio.Server.<init>(Server.java:39)
+	at nio.ServerStarter.main(ServerStarter.java:11)
+
+Process finished with exit code 1
