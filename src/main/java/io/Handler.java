@@ -13,9 +13,8 @@ import java.util.stream.Stream;
 
 public class Handler implements Runnable, Closeable {
 
-    private static final Logger log = LoggerFactory.getLogger(Handler.class);
     private final Socket socket;
-    private String user;
+    private String user = "serverDir\\user2";
     private Path dir;
 
     public Handler(Socket socket) {
@@ -24,25 +23,22 @@ public class Handler implements Runnable, Closeable {
 
     public void run() {
         try (InputStream inputStream = socket.getInputStream();
+             OutputStream outputStream = socket.getOutputStream();
              DataInputStream dataInputStream = new DataInputStream(inputStream);
-             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream())) {
-            //получаем файлы от клиента
-            StringBuilder userDir = new StringBuilder(dataInputStream.readUTF());
-            userDir.delete(0, 4);
-            user = userDir.toString();
-            dir = Paths.get(userDir.toString());
+             DataOutputStream dataOutputStream = new DataOutputStream(outputStream)) {
+
+            dir = Paths.get(user);
             System.out.println("Client = " + user);
-            if (!Files.exists(dir)) {
-                Files.createDirectory(dir);
-                dataOutputStream.writeUTF("Created dir " + dir.toString() + "\n");
-            }
-            dataOutputStream.writeUTF("Hello " + user);
-            dataOutputStream.writeUTF("\nEnter \"help\" to see commands\n");
+            lsCommand(dataOutputStream);
+
             while (true) {
                 StringBuilder message = new StringBuilder(dataInputStream.readUTF());
-                if (message.toString().startsWith("cmd\\")) {
-                    answerCommand(message, dataOutputStream);
-                } else {
+                System.out.println("Command from client " + message.toString());
+                if (message.toString().startsWith("cmd\\del")) {
+                    delCommand(message);
+                } else if (message.toString().equals("cmd\\ls")) lsCommand(dataOutputStream);
+                else if (message.toString().startsWith("cmd\\dwnld")) sendFiles(message, dataOutputStream,outputStream);
+                else {
                     String fileName = message.toString();
                     OutputStream fileOutputStream = new FileOutputStream(dir.toString() + "\\" + fileName);
                     long fileSize = dataInputStream.readLong();
@@ -53,75 +49,54 @@ public class Handler implements Runnable, Closeable {
                         fileSize -= b;
                     }
                     fileOutputStream.close();
-                    dataOutputStream.writeUTF(String.format("%s added to server cloud\n", fileName));
                 }
             }
         } catch (Exception e) {
-//            e.printStackTrace();
-            log.error("exception = ", e);
+            e.printStackTrace();
         }
     }
+
+    private void sendFiles(StringBuilder message, DataOutputStream dataOutputStream, OutputStream outputStream) throws IOException {
+        System.out.println("start sending");
+        String fileName = message.delete(0,9).toString();
+        System.out.println("FileName " + fileName);
+        File file = new File(dir.toString()+"\\"+fileName);
+        System.out.println("Created File " + file.getAbsolutePath());
+        InputStream in = new FileInputStream(file.getAbsolutePath());
+        System.out.println("Created InputStream");
+        int b = 0;
+        byte[] buffer = new byte[8192];
+        dataOutputStream.writeUTF("file\\" + fileName);
+        System.out.println("Sent FileName");
+        dataOutputStream.writeLong(file.length());
+        System.out.println("Sent FileLength");
+        while ((b = in.read(buffer)) != -1) {
+            outputStream.write(buffer, 0, b);
+        }
+        System.out.println("Sent FileBytes");
+        outputStream.flush();
+        System.out.println("Flushed");
+        in.close();
+        System.out.println("InputStream Closed");
+    }
+
 
     public void close() throws IOException {
         socket.close();
     }
 
-    public void answerCommand(StringBuilder command, DataOutputStream dos) throws IOException {
-        System.out.println("SRV: " + dir + " " + command + "\n");
-
-        if (command.toString().startsWith("cmd\\ls")) {
-            lsCommand(dos);
-        } else if (command.toString().startsWith("cmd\\del ")) {
-            delCommand(command, dos);
-        } else if (command.toString().startsWith("cmd\\mkdir ")) {
-            mkdirCommand(command, dos);
-        } else if (command.toString().startsWith("cmd\\cd")) {
-            cdCommand(command, dos);
-        } else if (command.toString().equals("cmd\\help")) {
-            helpCommand(dos);
-        }
-        command = new StringBuilder();
-    }
-
-    private void helpCommand(DataOutputStream dos) throws IOException {
-        dos.writeUTF(
-                "ls - shows all files and dirs\n" +
-                    "cd - shows current directory\n" +
-                    "cd [fullpath] - changes dir, ex: cd user1\\folder1\\somefolder\n" +
-                    "mkdir [folder] - creates folder in current directory, ex: mkdir testdir\n" +
-                    "del [filename] - deletes file, ex: del file1.docx\n"
-        );
-    }
-
-    private void cdCommand(StringBuilder command, DataOutputStream dos) throws IOException {
-        command.delete(0, 4);
-        if (command.toString().equals("cd")) {
-            dos.writeUTF("Current Dir : " + dir.toString());
-        } else {
-            command.delete(0, 3);
-            Path path = Paths.get(command.toString());
-            if (path.toString().startsWith(user) && Files.isDirectory(path) && Files.exists(path)) {
-                dir = path;
-                dos.writeUTF("Dir changed to : " + dir.toString());
-            } else dos.writeUTF("No such directory. Please create");
-        }
-    }
-
-    private void mkdirCommand(StringBuilder command, DataOutputStream dos) throws IOException {
-        command.delete(0, 10);
-        Path path = Paths.get(dir + "\\" + command.toString());
-        if (!Files.exists(path)) {
-            Files.createDirectory(path);
-            dos.writeUTF("Created : " + path.toString());
-        } else dos.writeUTF("Directory already exists : " + command.toString());
-
-    }
+//    public void answerCommand(DataInputStream dis,DataOutputStream dos) throws IOException {
+//        String msg = dis.readUTF();
+//        if (msg.equals("ls")) lsCommand(dos);
+//        else if (msg.equals("del")) delCommand(dis);
+//
+//    }
 
     private void lsCommand(DataOutputStream dos) throws IOException {
         Files.walk(dir).forEach(x -> {
             try {
-                dos.writeUTF(x.toString());
-                dos.writeUTF("\n");
+                if (!Files.isDirectory(x)) {
+                dos.writeUTF(x.getFileName().toString());}
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }
@@ -130,17 +105,17 @@ public class Handler implements Runnable, Closeable {
 
     }
 
-    private void delCommand(StringBuilder command, DataOutputStream dos) throws IOException {
-        command.delete(0, 8);
-        Path path = Paths.get(dir + "\\" + command.toString());
-
+    private void delCommand(StringBuilder message) throws IOException {
+        String fileName = message.delete(0,7).toString();
+        System.out.println("filename to delete " + fileName);
+        Path path = Paths.get(dir.toString() + "\\" + fileName);
+        System.out.println("path " + path.toString());
         if (Files.exists(path)) {
             Files.delete(path);
-            dos.writeUTF("deleted " + command.toString());
-            System.out.println("SRV: deleted " + command.toString());
-        } else dos.writeUTF("No such file : " + command.toString());
-
+            System.out.println("File Deleted");
+        }
     }
+
 
 
 }

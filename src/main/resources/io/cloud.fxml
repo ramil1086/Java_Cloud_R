@@ -3,13 +3,13 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane prefHeight="246.0" prefWidth="362.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.CloudController">
-    <children>
-        <Button fx:id="buttonUploadFiles" layoutX="29.0" layoutY="168.0" mnemonicParsing="false" onAction="#uploadFiles" prefHeight="25.0" prefWidth="97.0" text="Upload Files" />
-        <Button fx:id="buttonSendFiles" layoutX="126.0" layoutY="168.0" mnemonicParsing="false" onAction="#sendFiles" text="Send" />
-        <TextArea fx:id="textArea" layoutX="29.0" layoutY="16.0" prefHeight="146.0" prefWidth="318.0" text="Введите имя пользователя. Если пользователь отсутствует, будет создана директория" wrapText="true" />
-      <TextField fx:id="cmdTextField" layoutX="29.0" layoutY="200.0" onAction="#sendCmd" prefHeight="25.0" prefWidth="318.0" />
-      <ScrollBar fx:id="scrollBar" layoutX="333.0" layoutY="14.0" orientation="VERTICAL" prefHeight="146.0" prefWidth="14.0" />
-
-    </children>
+<AnchorPane prefHeight="326.0" prefWidth="473.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.CloudController">
+   <children>
+      <ListView fx:id="listView" layoutX="26.0" layoutY="33.0" prefHeight="238.0" prefWidth="425.0" />
+      <Button fx:id="buttonUploadFiles" layoutX="26.0" layoutY="281.0" mnemonicParsing="false" onAction="#uploadFiles" text="Upload Files" />
+      <Button fx:id="buttonDownloadFiles" layoutX="120.0" layoutY="281.0" mnemonicParsing="false" onAction="#downloadFiles" text="Download files" />
+      <Label fx:id="userLabel" layoutX="26.0" layoutY="14.0" text="UserName!" />
+      <Label layoutX="93.0" layoutY="14.0" text="Your files in cloud:" />
+      <Button fx:id="buttonDelete" layoutX="228.0" layoutY="281.0" mnemonicParsing="false" onAction="#deleteFiles" text="Delete" />
+   </children>
 </AnchorPane>
