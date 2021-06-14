@@ -6,8 +6,12 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="Java_Cloud_R" />
+        <module name="ClientModule" />
+        <module name="ServerModule" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="server" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>
